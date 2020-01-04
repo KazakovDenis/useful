@@ -5,28 +5,32 @@ A simple Flask app that pulls changes from master branch of your Github reposito
 sudo chown root:user deployer.py
 sudo chmod o-rwx deployer.py && sudo chmod g+rwx deployer.py
 sudo visudo
-add to the end: "nobody ALL = NOPASSWD: deployer.py"
+add to the end:
+"username ALL = NOPASSWD: /path/to/deployer.py
+ username ALL = NOPASSWD: /usr/bin/supervisorctl"
 
 2. Then configure supervisor and nginx files (examples in /configs)
 """
 import os
 from flask import Flask, request, redirect
+
+# your config module
 from config import APP_NAME, APP_PATH, GH_REPO_ID, GH_SENDER_ID, GH_SECRET # and other
 
 
-app = Flask(__name__)
-app.logger.filename = APP_PATH + '/log/deployer.log'
-app.logger.level = 20
+depl = Flask('Deployer')
+depl.logger.filename = APP_PATH + '/log/deployer.log'
+depl.logger.level = 20
 
 
 def update_app():
     commands = (f'cd {APP_PATH}', 'git pull origin master', f'supervisorctl restart {APP_NAME}')
     for command in commands:
-        app.logger.info(f'Executing "{command}"')
+        depl.logger.info(f'Executing "{command}"')
         try:
             os.system(command)
         except Exception as e:
-            app.logger.error(f'Could not execute "{command}": {e}')
+            depl.logger.error(f'Could not execute "{command}": {e}')
             break
 
 
@@ -48,7 +52,7 @@ def check_request(req) -> bool:
     return all(conditions)
 
 
-@app.route('/deploy', methods=['POST', 'GET'])
+@depl.route('/deploy', methods=['POST', 'GET'])
 def deploy():
     if request.method == 'POST':
         if check_request(request):
@@ -60,5 +64,5 @@ def deploy():
 
 
 if __name__ == '__main__':
-    app.run()
+    depl.run()
 
