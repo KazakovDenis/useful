@@ -1,2 +1,5 @@
-# useful
-Collecting any useful
+# The repository for everything useful
+
+  - Configuration files
+  - Application templates
+  - Scripts
