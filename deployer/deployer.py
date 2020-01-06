@@ -1,8 +1,8 @@
 """
 A simple Flask app that pulls changes from master branch of your Github repository when changes have been comitted
 
-1. Put it into your app directory and do the following:
-sudo chown root:user deployer.py
+1. Do the following:
+sudo chown root:username deployer.py
 sudo chmod o-rwx deployer.py && sudo chmod g+rwx deployer.py
 sudo visudo
 add to the end:
@@ -14,9 +14,12 @@ add to the end:
 import os
 from flask import Flask, request, redirect
 
-# your config module
-from config import APP_NAME, APP_PATH, GH_REPO_ID, GH_SENDER_ID, GH_SECRET # and other
 
+APP_NAME = 'your app name in supervisor config'
+APP_PATH = os.environ.get('APP_PATH')
+GH_REPO_ID = os.environ.get('GH_REPO_ID')
+GH_SENDER_ID = os.environ.get('GH_SENDER_ID')
+GH_SECRET = os.environ.get('GH_SECRET')
 
 depl = Flask('Deployer')
 depl.logger.filename = APP_PATH + '/log/deployer.log'
@@ -24,7 +27,7 @@ depl.logger.level = 20
 
 
 def update_app():
-    commands = (f'cd {APP_PATH}', 'git pull origin master', f'supervisorctl restart {APP_NAME}')
+    commands = (f'cd {APP_PATH}', 'git pull origin master', f'sudo supervisorctl restart {APP_NAME}')
     for command in commands:
         depl.logger.info(f'Executing "{command}"')
         try:
@@ -38,7 +41,7 @@ def update_app():
 def verify_signature(received_signature, request_body) -> bool:
     # from hmac import HMAC, compare_digest
     # from hashlib import sha1
-    # secret = CONFIG.GITHUB_SECRET.encode()
+    # secret = GH_SECRET.encode()
     # expected_sign = HMAC(key=secret, msg=request_body, digestmod=sha1).hexdigest()
     # return compare_digest(received_signature, expected_sign)
     return bool(received_signature)
