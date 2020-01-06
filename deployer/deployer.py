@@ -9,19 +9,19 @@ add to the end:
 "username ALL = NOPASSWD: /path/to/deployer.py
  username ALL = NOPASSWD: /usr/bin/supervisorctl"
 
-2. Then configure supervisor and nginx files (examples in /configs)
+2. Then configure supervisor and nginx files
 """
 import os
 from flask import Flask, request, redirect
 
 
 APP_NAME = 'your app name in supervisor config'
-APP_PATH = os.environ.get('APP_PATH')
+APP_PATH = '/path/to/your/app'
 GH_REPO_ID = os.environ.get('GH_REPO_ID')
 GH_SENDER_ID = os.environ.get('GH_SENDER_ID')
 GH_SECRET = os.environ.get('GH_SECRET')
 
-depl = Flask('Deployer')
+depl = Flask(__name__)
 depl.logger.filename = APP_PATH + '/log/deployer.log'
 depl.logger.level = 20
 
