@@ -34,6 +34,25 @@ static PyObject *method_fputs(PyObject *self, PyObject *args) {
 }
 
 
+// Создаём обёртку над С-классом для Python
+// Создаём структуру, хранящую данные
+typedef struct {
+    PyObject_HEAD
+    int ival;
+} CustomObject;
+
+// Создаем структуру описывающую тип:
+static PyTypeObject CustomType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "fputs.Custom",
+    .tp_doc = "Custom objects",
+    .tp_basicsize = sizeof(CustomObject),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_new = PyType_GenericNew,
+};
+
+
 // Из 2 нижеследующих структур данные будут генерироваться в ру-файл
 // Описываем входящие в модуль функции
 static PyMethodDef FputsMethods[] = {
@@ -45,16 +64,31 @@ static PyMethodDef FputsMethods[] = {
 // Задаём метаданные для модуля
 static struct PyModuleDef fputsmodule = {
     PyModuleDef_HEAD_INIT,
-    "c_ext",
-    "PyModuleDef: module docstring",
-    -1,
+    .m_name = "c_ext",
+    .m_doc = "PyModuleDef: module docstring",
+    .m_size = -1,
     FputsMethods
 };
 
 
 // Инициализируем модуль
-PyMODINIT_FUNC PyInit_c_ext(void) {
+PyMODINIT_FUNC
+PyInit_c_ext(void) {
+
     PyObject *module = PyModule_Create(&fputsmodule);
+    if (module == NULL)
+        return NULL;
+
+    // Добавляем класс в модуль:
+    if (PyType_Ready(&CustomType) < 0)
+        return NULL;
+
+    Py_INCREF(&CustomType);
+    if (PyModule_AddObject(module, "Custom", (PyObject *) &CustomType) < 0) {
+        Py_DECREF(&CustomType);
+        Py_DECREF(module);
+        return NULL;
+    }
 
     // Инициализируем объект исключения
     StringTooShortError = PyErr_NewException("fputs.StringTooShortError", NULL, NULL);
