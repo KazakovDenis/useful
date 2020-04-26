@@ -18,9 +18,9 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 
-c_ext = Extension(
-    "c_ext",                # должно совпадать с PyInit_[c_extension] и названием в PyModuleDef
-    ["src/c_module.c"],     # Unix-like
+my_ext = Extension(
+    "my_ext",                # должно совпадать с PyInit_[c_extension] и названием в PyModuleDef
+    ["src/mylib.c"],         # Unix-like
 )
 
 
@@ -38,8 +38,8 @@ def main():
           long_description_content_type="text/markdown",
 
           packages=find_packages(),                                            # ищет все __init__.py
-          ext_package='mypackage/c_pkg',                                       # куда положить с-расширение
-          ext_modules=[c_ext],
+          ext_package='mypackage/ext',                                         # куда положить с-расширение
+          ext_modules=[my_ext],
           classifiers=[
               "Programming Language :: Python :: 3",
               "License :: OSI Approved :: MIT License",
