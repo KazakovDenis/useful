@@ -12,8 +12,13 @@
 
 // Описываем входящие в модуль функции
 static PyMethodDef MyLibMethods[] = {
-    {"fputs", method_fputs, METH_VARARGS, "Функция для записи текста в файл"},
-    {NULL, NULL, 0, NULL}
+    {
+        "fputs",                             // название функции
+        method_fputs,                        // имя функции на Си
+        METH_VARARGS,                        // способ передачи аргументов: METH_VARARGS (переменное кол-во) / METH_NOARGS (нет) 
+        "Функция для записи текста в файл"   // докстринг
+    },
+    {NULL, NULL, 0, NULL}                    // метка окончания спиcка аргументов
 };
 
 
@@ -35,13 +40,13 @@ PyInit_my_ext(void) {
 
     // Инициализируем наш класс, заполняя его поля дефолтными значениями
     if (PyType_Ready(&MyClassType) < 0)
-        return NULL;
+        return NULL;                          // если не хватило памяти
 
     module = PyModule_Create(&mymodule);
     if (module == NULL)
         return NULL;
 
-    Py_INCREF(&MyClassType);    // увеличивает счётчик ссылок
+    Py_INCREF(&MyClassType);                  // увеличивает счётчик ссылок
     if (PyModule_AddObject(module, "MyClass", (PyObject *) &MyClassType) < 0) {
         Py_DECREF(&MyClassType);
         Py_DECREF(module);

@@ -18,7 +18,7 @@ static PyObject *method_fputs(PyObject *self, PyObject *args) {
        return NULL;
     }
 
-    // Вызываем исключение
+    // Проверяем на исключения
     if (strlen(str) < 10) {
         PyErr_SetString(StringTooShortError, "String length must be greater than 10");
         return NULL;

@@ -7,14 +7,14 @@
 
 // Создаём структуру c полями создаваемого класса
 typedef struct {
-    PyObject_HEAD   // обязательный макрос, ниже определяем поля класса
+    PyObject_HEAD        // обязательный макрос, ниже определяем поля
     PyObject *first;
     PyObject *last;
     int number;
 } MyClassObject;
 
 
-// функция обнуления класса
+// функция-деструктор для освобождения памяти из-под объекта
 static void
 MyClass_dealloc(MyClassObject *self)
 {
@@ -54,6 +54,7 @@ MyClass_init(MyClassObject *self, PyObject *args, PyObject *kwds)
     static char *kwlist[] = {"first", "last", "number", NULL};
     PyObject *first = NULL, *last = NULL, *tmp;
 
+    // разбор строки аргументов
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|OOi", kwlist,
                                      &first,
                                      &last,
@@ -76,12 +77,18 @@ MyClass_init(MyClassObject *self, PyObject *args, PyObject *kwds)
 }
 
 
-// описываем поля
+// описываем поля:
 static PyMemberDef MyClass_members[] = {
-    {"first", T_OBJECT_EX, offsetof(MyClassObject, first), 0, "first name"},
+    {
+        "first",                          // название поля
+        T_OBJECT_EX,                      // тип поля
+        offsetof(MyClassObject, first),   // смещение элемента в структуре
+        0,                                // флаг (READONLY, READ_RESTRICTED и т.д.)
+        "first name"                      // описание
+    },
     {"last", T_OBJECT_EX, offsetof(MyClassObject, last), 0, "last name"},
     {"number", T_INT, offsetof(MyClassObject, number), 0, "custom number"},
-    {NULL}  /* Sentinel */
+    {NULL}                                // метка окончания спиcка полей
 };
 
 
@@ -101,28 +108,31 @@ MyClass_name(MyClassObject *self, PyObject *Py_UNUSED(ignored))
 }
 
 
-// описываем методы класса
+// описываем методы класса:
 static PyMethodDef MyClass_methods[] = {
-    {"name", (PyCFunction) MyClass_name, METH_NOARGS,
-     "Return the name, combining the first and last name"
+    {"name",                                // название 
+    (PyCFunction) MyClass_name,             // имя метода на Си с приведением к PyCFunction
+    METH_NOARGS,                            // способ передачи аргументов: METH_VARARGS (переменное кол-во) / METH_NOARGS (нет) 
+    "Return the name, combining \           
+    the first and last name"                // описание
     },
-    {NULL}  /* Sentinel */
+    {NULL}                                  // метка окончания спиcка аргументов
 };
 
 
 // Создаем структуру, описывающую класс:
 static PyTypeObject MyClassType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "mylib.MyClass",
-    .tp_doc = "MyClass objects",
+    .tp_name = "mylib.MyClass",                              // имя вида модуль.Класс
+    .tp_doc = "MyClass objects",                             // докстринг класса
     .tp_basicsize = sizeof(MyClassObject),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_new = MyClass_new,
-    .tp_init = (initproc) MyClass_init,
-    .tp_dealloc = (destructor) MyClass_dealloc,
-    .tp_members = MyClass_members,
-    .tp_methods = MyClass_methods,
+    .tp_itemsize = 0,                                        // размер экземпляра, если отличается от tp_basicsize
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,    // различные флаги доступа
+    .tp_new = MyClass_new,                                   // реализация __new__ либо базовый PyType_GenericNew()
+    .tp_init = (initproc) MyClass_init,                      // реализация __init__
+    .tp_dealloc = (destructor) MyClass_dealloc,              // деструктор
+    .tp_members = MyClass_members,                           // пользовательские поля
+    .tp_methods = MyClass_methods,                           // пользовательские методы
 };
 
 #endif /* !Test_CLASS_H */
